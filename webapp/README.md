@@ -46,6 +46,17 @@ transactions, auto-detected from the 16-digit card number in the PDF's
 filename — pass a card number explicitly to `rhbPdf.parse(file, cardNumber)`
 if that heuristic ever doesn't apply.
 
+## Income / deposits
+
+HLB and OCBC deposit rows are tracked as income (`Transaction.type: 'income'`),
+exported to Wallet with a positive amount and `type: Income` instead of being
+silently dropped. RHB stays expense-only on purpose: its "credits" (`PYMT VIA
+SA/CA ACCOUNT`, refunds, cashback) are you paying off your own card or getting
+money back on a purchase, not income — counting those as income would
+overstate it. If that RHB behavior is ever wrong for your statements, it's
+isolated to the CR-suffix skip in `rhbPdf.js` and the `direction: payment`
+skip in `rhb.js`.
+
 ## Status
 
 | Parser | Risk | Status |

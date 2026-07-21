@@ -27,9 +27,13 @@ function render() {
   }).length;
 
   const discardedCount = discarded.size;
-  const label = discardedCount
-    ? `${txData.length - discardedCount} of ${txData.length} · ${discardedCount} discarded`
-    : `${txData.length} transactions`;
+  const incomeCount = txData.filter((r) => r.type === 'income').length;
+  const label = [
+    discardedCount
+      ? `${txData.length - discardedCount} of ${txData.length} · ${discardedCount} discarded`
+      : `${txData.length} transactions`,
+    incomeCount ? `${incomeCount} income` : null,
+  ].filter(Boolean).join(' · ');
   document.getElementById('tx-count').textContent = label;
 
   if (!txData.length) {
@@ -46,7 +50,9 @@ function render() {
     if (filterFrom && date < filterFrom) return '';
 
     const gone = discarded.has(i);
-    const amt = row.amount != null ? parseFloat(row.amount).toFixed(2) : '';
+    const isIncome = row.type === 'income';
+    const amt = row.amount != null ? `${isIncome ? '+' : '-'}${parseFloat(row.amount).toFixed(2)}` : '';
+    const amtCls = isIncome ? 'text-emerald-600 dark:text-emerald-400' : 'text-zinc-700 dark:text-zinc-300';
     const rowCls = gone
       ? 'opacity-35 line-through pointer-events-none select-none'
       : 'hover:bg-zinc-50/60 dark:hover:bg-zinc-800/30';
@@ -62,7 +68,7 @@ function render() {
       <td class="px-4 py-3">${sourceBadge(row.source_account)}</td>
       <td class="px-4 py-3 text-xs text-zinc-500 dark:text-zinc-400 whitespace-nowrap tabular-nums">${esc(date)}</td>
       <td class="px-4 py-3 text-xs text-zinc-700 dark:text-zinc-300 max-w-xs" style="word-break:break-word">${esc(row.description || '')}</td>
-      <td class="px-4 py-3 text-xs text-right font-mono tabular-nums text-zinc-700 dark:text-zinc-300 whitespace-nowrap">${esc(amt)}</td>
+      <td class="px-4 py-3 text-xs text-right font-mono tabular-nums ${amtCls} whitespace-nowrap">${esc(amt)}</td>
       <td class="px-3 py-3 text-right">
         <button onclick="window.__table.toggleDiscard(${i})" title="${gone ? 'Restore' : 'Discard'}"
                 class="p-1.5 rounded-lg transition-colors ${dCls}">

@@ -77,7 +77,7 @@ export async function parse(file) {
 
   const transactions = [];
   for (const tx of raw) {
-    if (tx.withdrawal === null) continue; // income / deposit row, skip
+    if (tx.withdrawal === null && tx.deposit === null) continue; // matched a date but no amount at all
 
     // Build description: group words by line (same top), join lines with " / ".
     // A gap > 20px between lines means we've left the transaction area (e.g. the
@@ -107,10 +107,12 @@ export async function parse(file) {
     const [d, m, y] = tx.dateStr.split('/');
     const date = `${y}-${m}-${d}`;
 
+    const isDeposit = tx.withdrawal === null;
     transactions.push(makeTransaction({
       date,
       description,
-      amount: tx.withdrawal,
+      amount: isDeposit ? tx.deposit : tx.withdrawal,
+      type: isDeposit ? 'income' : 'expense',
       currency: 'MYR',
       payment_type: 'DuitNow QR / POS / Bank transfer',
       source_account: 'HLB Pay & Save',

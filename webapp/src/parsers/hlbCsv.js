@@ -52,9 +52,12 @@ export async function parse(file) {
   const transactions = [];
   data.forEach((row, i) => {
     const wdRaw = (row['Withdrawal (MYR)'] || '').trim().replace(/,/g, '');
-    if (!wdRaw) return; // deposit / credit row
+    const depRaw = (row['Deposit (MYR)'] || '').trim().replace(/,/g, '');
+    const isDeposit = !wdRaw;
+    const amountRaw = isDeposit ? depRaw : wdRaw;
+    if (!amountRaw) return; // no amount at all
 
-    const amount = parseFloat(wdRaw);
+    const amount = parseFloat(amountRaw);
     if (amount <= 0) return;
 
     const dateStr = (row['Date'] || '').trim();
@@ -72,6 +75,7 @@ export async function parse(file) {
       date,
       description,
       amount,
+      type: isDeposit ? 'income' : 'expense',
       currency: 'MYR',
       payment_type: 'DuitNow QR / POS / Bank transfer',
       source_account: 'HLB Pay & Save',

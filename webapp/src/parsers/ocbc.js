@@ -28,9 +28,12 @@ export async function parse(file) {
   const transactions = [];
   for (const row of data) {
     const withdrawalRaw = (row['Withdrawals(MYR )'] || '').trim().replace(/^"|"$/g, '');
-    if (!withdrawalRaw) continue;
+    const depositRaw = (row['Deposits(MYR )'] || '').trim().replace(/^"|"$/g, '');
+    const isDeposit = !withdrawalRaw;
+    const amountRaw = isDeposit ? depositRaw : withdrawalRaw;
+    if (!amountRaw) continue;
 
-    const amount = parseFloat(withdrawalRaw.replace(/,/g, ''));
+    const amount = parseFloat(amountRaw.replace(/,/g, ''));
     if (amount <= 0) continue;
 
     const dateStr = (row['Transaction date'] || '').trim();
@@ -44,6 +47,7 @@ export async function parse(file) {
       date,
       description,
       amount,
+      type: isDeposit ? 'income' : 'expense',
       currency: 'MYR',
       payment_type: 'Bank transfer',
       source_account: 'OCBC 360',

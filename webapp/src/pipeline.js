@@ -14,14 +14,15 @@ export const WALLET_COLUMNS = [
 
 /** @param {import('./categorize.js').Transaction} tx */
 export function toWalletRow(tx) {
-  const negAmount = `-${tx.amount.toFixed(2)}`;
+  const isIncome = tx.type === 'income';
+  const signedAmount = isIncome ? tx.amount.toFixed(2) : `-${tx.amount.toFixed(2)}`;
   return {
     account: '',
     category: '',
     currency: tx.currency,
-    amount: negAmount,
-    ref_currency_amount: negAmount,
-    type: 'Expenses',
+    amount: signedAmount,
+    ref_currency_amount: signedAmount,
+    type: isIncome ? 'Income' : 'Expenses',
     payment_type: 'CASH',
     note: tx.description,
     payment_type_local: '',
@@ -61,17 +62,22 @@ export async function runPipeline({ hlbFile, ocbcFile, rhbFile, rhbCardOverride 
   const log = [];
   const all = [];
 
+  function summarize(txs) {
+    const income = txs.filter((t) => t.type === 'income').length;
+    return income ? `${txs.length} rows (${txs.length - income} withdrawals, ${income} deposits)` : `${txs.length} withdrawals`;
+  }
+
   if (ocbcFile) {
     log.push(`Parsing OCBC:  ${ocbcFile.name}`);
     const txs = await ocbc.parse(ocbcFile);
-    log.push(`  ${txs.length} withdrawals`);
+    log.push(`  ${summarize(txs)}`);
     all.push(...txs);
   }
 
   if (hlbFile) {
     log.push(`Parsing HLB:   ${hlbFile.name}`);
     const txs = extOf(hlbFile.name) === 'csv' ? await hlbCsv.parse(hlbFile) : await hlb.parse(hlbFile);
-    log.push(`  ${txs.length} withdrawals`);
+    log.push(`  ${summarize(txs)}`);
     all.push(...txs);
   }
 
@@ -88,8 +94,9 @@ export async function runPipeline({ hlbFile, ocbcFile, rhbFile, rhbCardOverride 
     throw new Error('No transactions loaded — provide at least one of HLB, OCBC, RHB.');
   }
 
+  const incomeCount = all.filter((t) => t.type === 'income').length;
   log.push('');
-  log.push(`Total: ${all.length} transactions`);
+  log.push(`Total: ${all.length} transactions${incomeCount ? ` (${incomeCount} income)` : ''}`);
 
   return { transactions: all, log };
 }
