@@ -103,3 +103,13 @@ export function setTransactions(transactions) {
 export function getKeptTransactions() {
   return txData.filter((_, i) => !discarded.has(i));
 }
+
+export function resetTable() {
+  txData = [];
+  discarded = new Set();
+  filterFrom = '';
+  document.getElementById('table-filter-from').value = '';
+  document.getElementById('results-card').classList.add('hidden');
+  document.getElementById('table-body').innerHTML = `<tr><td colspan="5" class="px-4 py-12 text-center text-sm text-zinc-400 dark:text-zinc-500">Run the pipeline above to load transactions</td></tr>`;
+  document.getElementById('tx-count').textContent = '';
+}

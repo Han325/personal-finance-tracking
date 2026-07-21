@@ -18,3 +18,7 @@ export function listMonths() {
 export function getRun(month) {
   return runs.get(month);
 }
+
+export function clearRuns() {
+  runs.clear();
+}

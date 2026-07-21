@@ -89,6 +89,11 @@ function renderFileList() {
   }).join('');
 }
 
+export function clearFiles() {
+  uploadedFiles = [];
+  renderFileList();
+}
+
 /** @returns {{hlbFile?: File, ocbcFile?: File, rhbFile?: File, untaggedCount: number}} */
 export function getTaggedFiles() {
   const tagged = uploadedFiles.filter((u) => u.tag);

@@ -1,9 +1,9 @@
 import { runPipeline, transactionsToCsv } from './pipeline.js';
 import { initTheme } from './ui/theme.js';
 import { showToast } from './ui/toast.js';
-import { initFileUpload, getTaggedFiles } from './ui/fileUpload.js';
-import { initTableControls, setTransactions, getKeptTransactions } from './ui/table.js';
-import { saveRun, listMonths, getRun } from './ui/runsStore.js';
+import { initFileUpload, getTaggedFiles, clearFiles } from './ui/fileUpload.js';
+import { initTableControls, setTransactions, getKeptTransactions, resetTable } from './ui/table.js';
+import { saveRun, listMonths, getRun, clearRuns } from './ui/runsStore.js';
 
 let currentMonth = '';
 
@@ -77,6 +77,22 @@ function downloadCsv() {
   URL.revokeObjectURL(url);
 }
 
+function handleReset() {
+  if (!confirm('Reset everything? This clears loaded files and all results from this session.')) return;
+
+  clearFiles();
+  resetTable();
+  clearRuns();
+
+  currentMonth = '';
+  document.getElementById('month-select').innerHTML = '';
+  document.getElementById('month-input').value = new Date().toISOString().slice(0, 7);
+  document.getElementById('run-log').classList.add('hidden');
+  document.getElementById('log-content').textContent = '';
+
+  showToast('Reset', 'ok');
+}
+
 function init() {
   initTheme();
   initFileUpload();
@@ -84,6 +100,7 @@ function init() {
 
   document.getElementById('month-input').value = new Date().toISOString().slice(0, 7);
   document.getElementById('run-btn').addEventListener('click', handleRunPipeline);
+  document.getElementById('reset-btn').addEventListener('click', handleReset);
   document.getElementById('download-btn').addEventListener('click', downloadCsv);
   document.getElementById('month-select').addEventListener('change', (e) => loadMonth(e.target.value));
 
